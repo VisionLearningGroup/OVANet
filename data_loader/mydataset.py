@@ -115,9 +115,6 @@ class ImageFolder(data.Dataset):
         path = self.imgs[index]
         target = self.labels[index]
         img = self.loader(path)
-        #if self.train:
-        #    img = augment_images(img)
-
         img = self.transform(img)
         if self.target_transform is not None:
             target = self.target_transform(target)
@@ -127,67 +124,6 @@ class ImageFolder(data.Dataset):
             return img,target ,index
         else:
             return img, target
-
-    def __len__(self):
-        return len(self.imgs)
-
-class ImageFolder_aug(data.Dataset):
-    """A generic data loader where the images are arranged in this way: ::
-        root/dog/xxx.png
-        root/dog/xxy.png
-        root/dog/xxz.png
-        root/cat/123.png
-        root/cat/nsdf3.png
-        root/cat/asd932_.png
-    Args:
-        root (string): Root directory path.
-        transform (callable, optional): A function/transform that  takes in an PIL image
-            and returns a transformed version. E.g, ``transforms.RandomCrop``
-        target_transform (callable, optional): A function/transform that takes in the
-            target and transforms it.
-        loader (callable, optional): A function to load an image given its path.
-     Attributes:
-        classes (list): List of the class names.
-        class_to_idx (dict): Dict with items (class_name, class_index).
-        imgs (list): List of (image path, class_index) tuples
-    """
-
-    def __init__(self, image_list, transform=None, transform_aug=None, target_transform=None, return_paths=False,
-                 loader=default_loader,train=False, return_id=False):
-        imgs, labels = make_dataset_nolist(image_list)
-        self.imgs = imgs
-        self.labels= labels
-        self.transform = transform
-        self.transform_aug = transform_aug
-        self.target_transform = target_transform
-        self.loader = loader
-        self.return_paths = return_paths
-        self.return_id = return_id
-        self.train = train
-    def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
-        Returns:
-            tuple: (image, target) where target is class_index of the target class.
-        """
-
-        path = self.imgs[index]
-        target = self.labels[index]
-        img = self.loader(path)
-        #if self.train:
-        #    img = augment_images(img)
-        img_aug = self.transform_aug(img)
-        img = self.transform(img)
-
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-        if self.return_paths:
-            return img, img_aug, target, path
-        elif self.return_id:
-            return img, img_aug, target ,index
-        else:
-            return img, img_aug, target
 
     def __len__(self):
         return len(self.imgs)

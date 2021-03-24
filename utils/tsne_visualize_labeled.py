@@ -6,7 +6,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 args = sys.argv
-N = 31 # Number of labels
+N = 11 # Number of labels
 cmap = plt.cm.jet
 # extract all colors from the .jet map
 cmaplist = [cmap(i) for i in range(cmap.N)]
@@ -38,10 +38,13 @@ def plot_embedding2(X, label, title=None):
     plt.figure()
     ax = plt.subplot(111)
     color_dict = {0:'b',1:'r'}
-    inds = np.where(label==0)[0]
-    plt.scatter(X[inds, 0], X[inds, 1],color='r',alpha=0.1)
-    inds = np.where(label == 1)[0]
-    plt.scatter(X[inds, 0], X[inds, 1], color='b', alpha=0.1)
+    inds2 = np.where(label==2)[0]
+    inds1 = np.where(label==1)[0]
+    inds0 = np.where(label==0)[0]
+    plt.scatter(X[inds0, 0], X[inds0, 1],color='r',alpha=0.1)
+    #inds = np.where(label == 1)[0]
+    plt.scatter(X[inds1, 0], X[inds1, 1], color='b', alpha=0.1)
+    plt.scatter(X[inds2, 0], X[inds2, 1], color='g', alpha=0.1)
     ax.tick_params(labelbottom="off", bottom="off")
     ax.tick_params(labelleft="off", left="off")
     plt.tick_params(color='white')
@@ -76,7 +79,10 @@ x_min, x_max = np.min(X_embedded, 0), np.max(X_embedded, 0)
 X_embedded = (X_embedded - x_min) / (x_max - x_min)
 X_scaled = plot_embedding(X_embedded[:X_s.shape[0]],Y[:X_s.shape[0]],title=args[5]+"_source")
 X_scaled = plot_embedding(X_embedded[X_s.shape[0]:],Y[X_s.shape[0]:],title=args[5]+"_target")
-Y[:X_t.shape[0]] = 0
-Y[X_t.shape[0]:] = 1
+inds_unk = np.where(Y==10)[0]
+
+Y[:X_s.shape[0]] = 0
+Y[X_s.shape[0]:] = 1
+Y[inds_unk] = 2
 X_scaled = plot_embedding2(X_embedded,Y,title=args[5]+'2')
 np.save('embed.npy',X_scaled)
