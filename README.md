@@ -21,7 +21,8 @@ Prepare dataset in data directory.
 ./data/Real ## OfficeHome
 ./data/visda_train ## VisDA synthetic images
 ./data/visda_val ## VisDA real images
-
+./data/dclipart ## DomainNet # We add 'd' for all directories of DomainNet to avoid confusion with OfficeHome.
+./data/nabird/images ## Nabird
 ```
 
 #### File splits
@@ -41,11 +42,11 @@ File list need to be stored in ./txt, e.g.,
 ```
 
 
-## Train
+## Training and Evaluation
 
-All training script is stored in script directory.
+All training scripts are stored in script directory.
 
-Example of Open Set Domain Adaptation on Office.
+Ex. Open Set Domain Adaptation on Office.
 ```
 sh scripts/run_office_obda.sh $gpu-id train.py
 ```

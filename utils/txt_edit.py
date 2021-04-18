@@ -9,6 +9,7 @@ for file in files:
     for line in lines:
         name = line.split(' ')[0]
         ind = line.split(' ')[1]
-        name = name.replace('/research/masaito', 'data')
+        name = name.replace('data/cross_domain_few/', 'data/')
         file_new.write('%s %s\n'%(name, ind))
+
 
