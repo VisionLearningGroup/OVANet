@@ -1,22 +1,19 @@
-# [OVANet: One-vs-All Network for Universal Domain Adaptation](https://arxiv.org/pdf/2104.03344.pdf)
+## [OVANet: One-vs-All Network for Universal Domain Adaptation](https://arxiv.org/pdf/2104.03344.pdf)
 
 This repository provides code for the paper.
 Please go to our project page to quickly understand the content of the paper or read our paper.
 ### [Project Page (coming soon)]()  [Paper](https://arxiv.org/pdf/2104.03344.pdf)
 
-
-## Environment
-Python 3.6.9, Pytorch 1.6.0, Torch Vision 0.7.0, [Apex](https://github.com/NVIDIA/apex). See requirement.txt.
+### Environment
+Python 3.6.9, Pytorch 1.6.0, Torch Vision 0.7.0, [Apex](https://github.com/NVIDIA/apex).
  We used the nvidia apex library for memory efficient high-speed training.
 
 ## Data Preparation
 
 #### Datasets
 
-[Office Dataset](https://people.eecs.berkeley.edu/~jhoffman/domainadapt/)
-[OfficeHome Dataset](http://hemanthdv.org/OfficeHome-Dataset/) [VisDA](https://github.com/VisionLearningGroup/taskcv-2017-public/tree/master/classification)
-[DomainNet](http://ai.bu.edu/M3SDA/)
-[NaBird](https://dl.allaboutbirds.org/nabirds)
+[Office Dataset](https://people.eecs.berkeley.edu/~jhoffman/domainadapt/),
+[OfficeHome Dataset](http://hemanthdv.org/OfficeHome-Dataset/), [VisDA](https://github.com/VisionLearningGroup/taskcv-2017-public/tree/master/classification), [DomainNet](http://ai.bu.edu/M3SDA/), [NaBird](https://dl.allaboutbirds.org/nabirds)
 
 Prepare dataset in data directory.
 ```
@@ -56,3 +53,12 @@ sh scripts/run_office_obda.sh $gpu-id train.py
 ### Reference
 This repository is contributed by [Kuniaki Saito](http://cs-people.bu.edu/keisaito/).
 If you consider using this code or its derivatives, please consider citing:
+
+```
+@article{saito2021ovanet,
+  title={OVANet: One-vs-All Network for Universal Domain Adaptation},
+  author={Saito, Kuniaki and Saenko, Kate},
+  journal={arXiv preprint arXiv:2104.03344},
+  year={2021}
+}
+```
