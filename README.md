@@ -27,7 +27,7 @@ Prepare dataset in data directory.
 
 #### File splits
 
-[File lists (txt files)](https://drive.google.com/file/d/1UWo46AnkswvCLKmxVFcCedsGZ89_S6Ag/view?usp=sharing)
+[File lists (txt files)](https://drive.google.com/file/d/1j_PT-gRWQQNkbwcWBuNc01D7QtCBYomN/view?usp=sharing)
 
 File list need to be stored in ./txt, e.g.,
 
