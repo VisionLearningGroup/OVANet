@@ -3,14 +3,15 @@ import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 import os
-import copy
+import logging
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import f1_score, roc_auc_score,  accuracy_score
 
 
 
 
-def feat_get(step, G, Cs, dataset_source, dataset_target, save_path, ova=True):
+def feat_get(step, G, Cs, dataset_source, dataset_target, save_path,
+             ova=True):
     G.eval()
 
     for batch_idx, data in enumerate(dataset_source):
@@ -86,7 +87,8 @@ def feat_get(step, G, Cs, dataset_source, dataset_target, save_path, ova=True):
 
 
 
-def test(step, dataset_test, name, n_share, G, Cs, open_class = None, open=False, entropy=False, thr=None):
+def test(step, dataset_test, name, n_share, G, Cs,
+         open_class = None, open=False, entropy=False, thr=None):
     G.eval()
     for c in Cs:
         c.eval()
@@ -146,8 +148,10 @@ def test(step, dataset_test, name, n_share, G, Cs, open_class = None, open=False
         roc_ent = roc_auc_score(Y_test[:, -1], pred_ent)
         roc_softmax = roc_auc_score(Y_test[:, -1], -np.max(pred_all, axis=1))
         ## compute best h-score by grid search. Note that we compupte
-        ## this score just to see the difference between learned threshold and best one.
-        best_th, best_acc, mean_score = select_threshold(pred_all, pred_open, label_all, class_list)
+        ## this score just to see the difference between learned threshold
+        ## and best one.
+        best_th, best_acc, mean_score = select_threshold(pred_all, pred_open,
+                                                         label_all, class_list)
 
     else:
         roc = 0.0
@@ -155,7 +159,6 @@ def test(step, dataset_test, name, n_share, G, Cs, open_class = None, open=False
         best_th = 0.
         best_acc = 0.
         roc_softmax = 0.0
-    import logging
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=name, format="%(message)s")
     logger.setLevel(logging.INFO)
@@ -182,7 +185,8 @@ def test(step, dataset_test, name, n_share, G, Cs, open_class = None, open=False
     return acc_all, h_score
 
 
-def select_threshold(pred_all, conf_thr, label_all, class_list, thr=None):
+def select_threshold(pred_all, conf_thr, label_all,
+                     class_list, thr=None):
     num_class  = class_list[-1]
     best_th = 0.0
     best_f = 0
@@ -201,7 +205,8 @@ def select_threshold(pred_all, conf_thr, label_all, class_list, thr=None):
         pred_class = pred_all.argmax(axis=1)
         ind_unk = np.where(conf_thr > th)[0]
         pred_class[ind_unk] = num_class
-        score, known, unknown = h_score_compute(label_all, pred_class, class_list)
+        score, known, unknown = h_score_compute(label_all, pred_class,
+                                                class_list)
         scores.append(score)
         if score > best_f:
             best_th = th
@@ -209,7 +214,8 @@ def select_threshold(pred_all, conf_thr, label_all, class_list, thr=None):
             best_known = known
             best_unknown = unknown
     mean_score = np.array(scores).mean()
-    print("best known %s best unknown %s best h-score %s"%(best_known, best_unknown, best_f))
+    print("best known %s best unknown %s "
+          "best h-score %s"%(best_known, best_unknown, best_f))
     return best_th, best_f, mean_score
 
 

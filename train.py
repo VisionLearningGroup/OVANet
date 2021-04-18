@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from apex import amp, optimizers
 from utils.utils import log_set, save_model
+from utils.loss import ova_loss, open_entropy
 from utils.lr_schedule import inv_lr_scheduler
 from utils.defaults import get_dataloaders, get_models
 from eval import test
@@ -15,21 +16,35 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Pytorch OVANet',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--config', type=str, default='config.yaml', help='/path/to/config/file')
+parser.add_argument('--config', type=str, default='config.yaml',
+                    help='/path/to/config/file')
 
-parser.add_argument('--source_path', type=str, default='./utils/source_list.txt', metavar='B',
+parser.add_argument('--source_data', type=str,
+                    default='./utils/source_list.txt',
                     help='path to source list')
-parser.add_argument('--target_path', type=str, default='./utils/target_list.txt', metavar='B',
+parser.add_argument('--target_data', type=str,
+                    default='./utils/target_list.txt',
                     help='path to target list')
-parser.add_argument('--log-interval', type=int, default=100, metavar='N',
-                    help='how many batches to wait before logging training status')
-parser.add_argument('--exp_name', type=str, default='office', help='/path/to/config/file')
-parser.add_argument('--net', type=str, default='resnet50', help='network name')
-parser.add_argument("--gpu_devices", type=int, nargs='+', default=None, help="")
-parser.add_argument("--no_adapt", default=False, action='store_true')
-parser.add_argument("--save_model", default=False, action='store_true')
-parser.add_argument("--save_path", type=str, default="record/ova_model", help='/path/to/config/file')
-parser.add_argument('--multi', type=float, default=0.1, metavar='N',
+parser.add_argument('--log-interval', type=int,
+                    default=100,
+                    help='how many batches before logging training status')
+parser.add_argument('--exp_name', type=str,
+                    default='office',
+                    help='/path/to/config/file')
+parser.add_argument('--network', type=str,
+                    default='resnet50',
+                    help='network name')
+parser.add_argument("--gpu_devices", type=int, nargs='+',
+                    default=None, help="")
+parser.add_argument("--no_adapt",
+                    default=False, action='store_true')
+parser.add_argument("--save_model",
+                    default=False, action='store_true')
+parser.add_argument("--save_path", type=str,
+                    default="record/ova_model",
+                    help='/path/to/save/model')
+parser.add_argument('--multi', type=float,
+                    default=0.1,
                     help='weight factor for adaptation')
 args = parser.parse_args()
 
@@ -41,10 +56,10 @@ gpu_devices = ','.join([str(id) for id in args.gpu_devices])
 os.environ["CUDA_VISIBLE_DEVICES"] = gpu_devices
 args.cuda = torch.cuda.is_available()
 
-source_data = args.source_path
-target_data = args.target_path
-evaluation_data = args.target_path
-network = args.net
+source_data = args.source_data
+target_data = args.target_data
+evaluation_data = args.target_data
+network = args.network
 use_gpu = torch.cuda.is_available()
 n_share = conf.data.dataset.n_share
 n_source_private = conf.data.dataset.n_source_private
@@ -53,17 +68,12 @@ open = n_total - n_share - n_source_private > 0
 num_class = n_share + n_source_private
 script_name = os.path.basename(__file__)
 
-inputs = {}
-inputs["source_data"] = source_data
-inputs["target_data"] = target_data
+inputs = vars(args)
 inputs["evaluation_data"] = evaluation_data
 inputs["conf"] = conf
-inputs["args"] = args
 inputs["script_name"] = script_name
-inputs["config_file"] = config_file
 inputs["num_class"] = num_class
-inputs["network"] = network
-inputs["gpu_devices"] = gpu_devices
+inputs["config_file"] = config_file
 
 source_loader, target_loader, \
 test_loader, target_folder = get_dataloaders(inputs)
@@ -72,8 +82,9 @@ logname = log_set(inputs)
 
 G, C1, C2, opt_g, opt_c, \
 param_lr_g, param_lr_c = get_models(inputs)
-
 ndata = target_folder.__len__()
+
+
 def train():
     criterion = nn.CrossEntropyLoss().cuda()
     print('train start!')
@@ -106,26 +117,16 @@ def train():
         opt_g.zero_grad()
         opt_c.zero_grad()
         C2.module.weight_norm()
+
         ## Source loss calculation
         feat = G(img_s)
-
         out_s = C1(feat)
         out_open = C2(feat)
-        out_open = out_open.view(out_s.size(0), 2, -1)
-        label_s_sp = torch.zeros((out_open.size(0),
-                                  out_open.size(2))).long().cuda()
-        label_range = torch.range(0, out_open.size(0) - 1).long()
-        label_s_sp[label_range, label_s] = 1
         ## source classification loss
         loss_s = criterion(out_s, label_s)
-
         ## open set loss for source
-        out_open = F.softmax(out_open, 1)
-        label_sp_neg = 1 - label_s_sp
-        open_loss_pos = torch.mean(torch.sum(-torch.log(out_open[:, 1, :]
-                                                    + 1e-8) * label_s_sp, 1))
-        open_loss_neg = torch.mean(torch.max(-torch.log(out_open[:, 0, :] +
-                                                        1e-8) * label_sp_neg, 1)[0])
+        out_open = out_open.view(out_s.size(0), 2, -1)
+        open_loss_pos, open_loss_neg = ova_loss(out_open, label_s)
         ## b x 2 x C
         loss_open = 0.5 * (open_loss_pos + open_loss_neg)
         ## open set loss for target
@@ -142,9 +143,7 @@ def train():
             feat_t = G(img_t)
             out_open_t = C2(feat_t)
             out_open_t = out_open_t.view(img_t.size(0), 2, -1)
-            out_open_t = F.softmax(out_open_t, 1)
-            ent_open = torch.mean(torch.mean(torch.sum(-out_open_t *
-                                                   torch.log(out_open_t + 1e-8), 1), 1))
+            ent_open = open_entropy(out_open_t)
             all += args.multi * ent_open
             log_values.append(ent_open.item())
             log_string += "Loss Open Target: {:.6f}"
