@@ -1,8 +1,11 @@
 ## [OVANet: One-vs-All Network for Universal Domain Adaptation](https://arxiv.org/pdf/2104.03344.pdf)
 
+![OVANet Overview](images/animation_ovanet.gif)
+
+
 This repository provides code for the paper.
 Please go to our project page to quickly understand the content of the paper or read our paper.
-### [Project Page (coming soon)]()  [Paper](https://arxiv.org/pdf/2104.03344.pdf)
+### [Project Page](https://cs-people.bu.edu/keisaito/research/OVANet.html)  [Paper](https://arxiv.org/pdf/2104.03344.pdf)
 
 ### Environment
 Python 3.6.9, Pytorch 1.6.0, Torch Vision 0.7.0, [Apex](https://github.com/NVIDIA/apex).
