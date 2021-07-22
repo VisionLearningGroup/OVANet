@@ -1,4 +1,4 @@
-## [OVANet: One-vs-All Network for Universal Domain Adaptation](https://arxiv.org/pdf/2104.03344.pdf)
+## [OVANet: One-vs-All Network for Universal Domain Adaptation (ICCV2021)](https://arxiv.org/pdf/2104.03344.pdf)
 
 ![OVANet Overview](images/animation_ovanet.gif)
 
